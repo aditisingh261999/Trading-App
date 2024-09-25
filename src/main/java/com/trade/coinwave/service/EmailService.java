@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 public class EmailService {
     private JavaMailSender mailSender;
 
-    public void sendVerificationOtpEmail(String email, String otp) throws MessagingException {
+    public void sendVerificationOtpToEmail(String email, String otp) throws MessagingException {
         MimeMessage mimeMessage = mailSender.createMimeMessage();
         MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, "UTF-8");
 

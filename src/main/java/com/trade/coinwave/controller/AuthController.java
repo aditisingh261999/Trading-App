@@ -91,7 +91,7 @@ public class AuthController {
 
             TwoFactorOTP newTwoFactorOtp = twoFactorOtpService.createTwofactorOtp(authUser, otp, jwtToken);
 
-            emailService.sendVerificationOtpEmail(userEmail, otp);
+            emailService.sendVerificationOtpToEmail(userEmail, otp);
 
             authResponse.setSession(newTwoFactorOtp.getId());
             return new ResponseEntity<>(authResponse, HttpStatus.ACCEPTED);
@@ -109,7 +109,7 @@ public class AuthController {
     private Authentication Authenticate(String userEmail, String password) {
         UserDetails userDetails = customUserDetailsService.loadUserByUsername(userEmail);
         if (userDetails == null) {
-            throw new BadCredentialsException("Invalid username");
+            throw new BadCredentialsException("Invalid email");
         }
         if (!password.equals(userDetails.getPassword())) {
             throw new BadCredentialsException("invalid password");
@@ -118,6 +118,7 @@ public class AuthController {
         return new UsernamePasswordAuthenticationToken(userDetails, password, userDetails.getAuthorities());
     }
 
+    @PostMapping("/two-factor/otp/{otp}")
     private ResponseEntity<AuthResponse> verifySigningOtp(@PathVariable String otp, @RequestParam String id) {
         TwoFactorOTP twoFactorOTP = twoFactorOtpService.findById(id);
         if (twoFactorOTP == null) {
