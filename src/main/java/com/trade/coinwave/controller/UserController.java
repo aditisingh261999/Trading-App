@@ -1,16 +1,24 @@
 package com.trade.coinwave.controller;
 
+import com.trade.coinwave.request.ForgetPasswordTokenRequest;
 import com.trade.coinwave.domain.VerificationType;
-import com.trade.coinwave.model.TwoFactorAuth;
+import com.trade.coinwave.model.ForgetPasswordToken;
 import com.trade.coinwave.model.User;
 import com.trade.coinwave.model.VerificationCode;
+import com.trade.coinwave.request.ResetPasswordRequest;
+import com.trade.coinwave.response.ApiResponse;
+import com.trade.coinwave.response.AuthResponse;
 import com.trade.coinwave.service.EmailService;
+import com.trade.coinwave.service.ForgetPasswordService;
 import com.trade.coinwave.service.UserService;
 import com.trade.coinwave.service.VerificationCodeService;
+import com.trade.coinwave.utils.OtpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 public class UserController {
@@ -23,6 +31,9 @@ public class UserController {
 
     @Autowired
     private VerificationCodeService verificationCodeService;
+
+    @Autowired
+    private ForgetPasswordService forgetPasswordService;
 
     @GetMapping("/api/users/profile")
     public ResponseEntity<User> getUserProfile (@RequestHeader("Authorization") String token) throws Exception {
@@ -53,9 +64,8 @@ public class UserController {
     }
 
     @PatchMapping("/api/user/enable-two-factor/verify-otp/{otp}")
-    public ResponseEntity<User> enableTwoFactorAuthentication(@RequestHeader ("Authorization") String token,
-                                                              @RequestParam String otp,
-                                                              @RequestParam VerificationType verificationType) throws Exception {
+    public ResponseEntity<User> enableTwoFactorAuthentication(@PathVariable String otp,
+                                                              @RequestHeader("Authorization") String token) throws Exception {
 
         User user = userService.findUserProfileByJwtToken(token);
         VerificationCode verificationCode = verificationCodeService.findVerificationCodeByUser(user.getId());
@@ -76,4 +86,50 @@ public class UserController {
         }
         throw new Exception("Invalid verification code");
     }
+
+    @PostMapping("/auth/users/reset-password/send-otp")
+    public ResponseEntity<AuthResponse> sendForgetPasswordOtp (
+            @RequestBody ForgetPasswordTokenRequest forgetPasswordTokenRequest) throws Exception {
+
+        User user = userService.findUserByEmail(forgetPasswordTokenRequest.getSendTo());
+        String otp = OtpUtils.generateOtp();
+        UUID uuid = UUID.randomUUID();
+        String id = uuid.toString();
+
+        ForgetPasswordToken forgetPasswordToken = forgetPasswordService.findByUser(user.getId());
+        if (forgetPasswordToken == null) {
+            forgetPasswordService.createForgetPasswordToken(user, id, otp,
+                    forgetPasswordTokenRequest.getVerificationType(),
+                    forgetPasswordTokenRequest.getSendTo());
+        }
+
+        if (forgetPasswordTokenRequest.getVerificationType().equals(VerificationType.EMAIL)) {
+            assert forgetPasswordToken != null;
+            emailService.sendVerificationOtpToEmail(user.getEmail(), forgetPasswordToken.getOtp());
+        }
+
+        AuthResponse authResponse = new AuthResponse();
+        authResponse.setToken(id);
+
+        return new ResponseEntity<>(authResponse, HttpStatus.OK);
+
+    }
+
+    @PatchMapping("/auth/user/reset-password/verify-otp/")
+    public ResponseEntity<ApiResponse> resetPassword(@RequestParam String id,
+                                              @RequestBody ResetPasswordRequest resetPasswordRequest,
+                                              @RequestHeader("Authorization") String token) throws Exception {
+
+        ForgetPasswordToken forgetPasswordToken = forgetPasswordService.findById(id);
+
+        boolean isVerified = forgetPasswordToken.getOtp().equals(resetPasswordRequest.getOtp());
+        if (isVerified) {
+            userService.updateUserPassword(forgetPasswordToken.getUser(), resetPasswordRequest.getPassword());
+            ApiResponse apiResponse = new ApiResponse();
+            apiResponse.setMessage("Password updated successfully");
+            return new ResponseEntity<>(apiResponse, HttpStatus.ACCEPTED);
+        }
+        throw new Exception("Invalid verification code");
+    }
+
 }
