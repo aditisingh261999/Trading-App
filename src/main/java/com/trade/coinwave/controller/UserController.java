@@ -79,7 +79,8 @@ public class UserController {
             updatedUser = userService.enableTwoFactorAuthentication(
                     verificationCode.getVerificationType(),
                     sendTo,
-                    user);
+                    user
+            );
 
             verificationCodeService.deleteVerificationCode(verificationCode);
             return new ResponseEntity<>(updatedUser, HttpStatus.OK);
