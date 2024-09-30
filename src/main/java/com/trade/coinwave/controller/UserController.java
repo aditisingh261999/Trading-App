@@ -41,7 +41,7 @@ public class UserController {
         if (user == null) {
             throw new Exception("Invalid token");
         }
-        return new ResponseEntity<User>(user, HttpStatus.OK);
+        return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
     @PostMapping("/api/users/verification/{verficationType}/send-otp")

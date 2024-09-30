@@ -113,7 +113,7 @@ public class CoinServiceImpl implements CoinService {
 
     @Override
     public String searchCoin(String keyword) throws Exception {
-        String url = "https://api.coingecko.com/api/v3/search?queue=" + keyword;
+        String url = "https://api.coingecko.com/api/v3/search?q=" + keyword;
 
         try {
             HttpHeaders headers = new HttpHeaders();
@@ -127,7 +127,7 @@ public class CoinServiceImpl implements CoinService {
     }
 
     @Override
-    public String top50CoinsByMarketCapRank() throws Exception {
+    public String getTop50CoinsByMarketCapRank() throws Exception {
         String url = "https://api.coingecko.com/api/v3/coins/markets/vs_currency=usd&per_page=50&page=1";
 
         try {
@@ -142,7 +142,7 @@ public class CoinServiceImpl implements CoinService {
     }
 
     @Override
-    public String GetTradingCoins() throws Exception {
+    public String getTradingCoins() throws Exception {
         String url = "https://api.coingecko.com/api/v3/search/trading";
 
         try {
