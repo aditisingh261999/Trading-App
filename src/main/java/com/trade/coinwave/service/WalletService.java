@@ -10,8 +10,8 @@ public interface WalletService {
 
     Wallet getUserWallet(User user);
     Wallet addBalanceToUserWallet(User user, BigDecimal amount);
-    Wallet findUserWalletById(Long id);
-    Wallet walletToWalletTransfer(User sender, Wallet receiver, BigDecimal amount);
-    Wallet payOrderPayment(Order order, User user);
+    Wallet findUserWalletById(Long id) throws Exception;
+    Wallet walletToWalletTransfer(User sender, Wallet receiver, BigDecimal amount) throws Exception;
+    Wallet payOrderPayment(Order order, User user) throws Exception;
 
 }
