@@ -21,8 +21,12 @@ public class WalletController {
     @Autowired
     private UserService userService;
 
-    public WalletController(WalletService walletService) {
+    private final OrderService orderService;
+
+
+    public WalletController(WalletService walletService, OrderService orderService) {
         this.walletService = walletService;
+        this.orderService = orderService;
     }
 
     @GetMapping("/api/wallet")
@@ -54,7 +58,7 @@ public class WalletController {
             @PathVariable Long orderId) throws Exception {
 
         User senderUser = userService.findUserProfileByJwtToken(token);
-        Order order = OrderService.getOrderById(orderId);
+        Order order = orderService.getOrderById(orderId);
         Wallet wallet = walletService.payOrderPayment(order, senderUser);
 
         return ResponseEntity.ok(wallet);
