@@ -56,7 +56,7 @@ public class WithdrawalServiceImpl implements WithdrawalService {
     }
 
     @Override
-    public List<Withdrawal> getAllWithdrawals() {
+    public List<Withdrawal> getAllWithdrawals(User user) {
         return withdrawalRepository.findAll();
     }
 }
