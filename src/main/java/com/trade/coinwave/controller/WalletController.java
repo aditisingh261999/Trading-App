@@ -1,10 +1,11 @@
 package com.trade.coinwave.controller;
 
-import com.trade.coinwave.model.Order;
-import com.trade.coinwave.model.User;
-import com.trade.coinwave.model.Wallet;
-import com.trade.coinwave.model.WalletTransaction;
+import com.trade.coinwave.domain.OrderStatus;
+import com.trade.coinwave.domain.PaymentMethod;
+import com.trade.coinwave.model.*;
+import com.trade.coinwave.response.PaymentResponse;
 import com.trade.coinwave.service.OrderService;
+import com.trade.coinwave.service.PaymentService;
 import com.trade.coinwave.service.UserService;
 import com.trade.coinwave.service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,9 @@ public class WalletController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private PaymentService paymentService;
 
     private final OrderService orderService;
 
@@ -60,6 +64,25 @@ public class WalletController {
         User senderUser = userService.findUserProfileByJwtToken(token);
         Order order = orderService.getOrderById(orderId);
         Wallet wallet = walletService.payOrderPayment(order, senderUser);
+
+        return ResponseEntity.ok(wallet);
+    }
+
+    @PutMapping("/api/wallet/deposit")
+    public ResponseEntity<Wallet> addMoneyToWallet(
+            @RequestHeader("Authorization") String token,
+            @RequestParam(name = "order_id") Long orderId,
+            @RequestParam(name = "payment_id") String paymentId) throws Exception {
+
+        User user = userService.findUserProfileByJwtToken(token);
+        Wallet wallet = walletService.getUserWallet(user);
+        PaymentOrder order = paymentService.getPaymentOrderById(orderId);
+
+        boolean status = paymentService.proceedPaymentOrder(order, paymentId);
+
+        if (status) {
+            wallet = walletService.addBalanceToUserWallet(user, order.getAmount());
+        }
 
         return ResponseEntity.ok(wallet);
     }
