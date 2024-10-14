@@ -1,9 +1,6 @@
 package com.trade.coinwave.controller;
 
-import com.trade.coinwave.domain.OrderStatus;
-import com.trade.coinwave.domain.PaymentMethod;
 import com.trade.coinwave.model.*;
-import com.trade.coinwave.response.PaymentResponse;
 import com.trade.coinwave.service.OrderService;
 import com.trade.coinwave.service.PaymentService;
 import com.trade.coinwave.service.UserService;
